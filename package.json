@@ -1,0 +1,20 @@
+{
+  "name": "mendix_documenter",
+  "version": "1.0.0",
+  "description": "Document a Mendix project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsc && node index.js"
+  },
+  "author": "rob.graham@auraq.com",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^11.13.7",
+    "@types/when": "^2.4.33",
+    "mendixmodelsdk": "^4.19.0",
+    "mendixplatformsdk": "^4.1.0",
+    "request": "^2.88.0",
+    "when": "^3.7.8"
+  }
+}

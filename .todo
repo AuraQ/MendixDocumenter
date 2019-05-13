@@ -1,0 +1,34 @@
+
+Outstanding:
+    Entities:
+        ☐ Add validation rules to entities 
+        ✔ Add event rules to entities @done(19-04-29 10:26)
+        ☐ Add association link to entites @low
+        ✔ Add links to enumeration pages used by attributes @done(19-04-30 16:15)
+        ✔ Show parent class on entities if exist @done(19-04-29 11:24)
+        ☐ If we have the same name entity in different modules - oh no @critical 
+    Enumerations:
+        ✔ Create list of enumerations per module @done(19-04-26 14:50)
+        ✔ Create folder of pages for enumerations @done(19-04-26 14:50)
+        ✔ Populate enumeration page with table of value & caption @done(19-04-26 15:05)
+    Java Actions:
+        ✔ Create list of java actions per module @done(19-04-29 15:30)
+        ✔ Create folder of pages for java actions @done(19-04-29 15:31)
+    Pages:
+        ✔ Create list of pages per module
+        ✔ Create folder of pages for pages
+        ☐ Is there a way to get the outermost context for a page and display this?
+        ☐ Is there a way to get what buttons are on the outer most context and disiplay this?
+    General:
+        ✔ Add a way to specify project details in a config.json instead of constants @done(19-04-26 15:44)
+            ✔ Username @done(19-04-26 15:44)
+            ✔ API key @done(19-04-26 15:44)
+            ✔ Project name @done(19-04-26 15:44)
+            ✔ Project ID @done(19-04-26 15:44)
+            ✔ Branch name @done(19-04-26 15:44)
+            ✔ Revision number @done(19-04-26 15:44)
+            ✔ Language code @done(19-04-26 15:44)
+            ✔ Modules @done(19-04-26 15:44)
+        ☐ Compression of functions? @low @started(19-04-26 14:18)
+        ✔ Generate output folders at runtime if missing @done(19-04-29 15:31)
+        ☐ Implement a search function for contains(filename) on all files generated.
