@@ -113,13 +113,19 @@ function getTypeFromActionType(type: codeactions.Type): String {
             result = `List&lt;${module}.${entity}&gt;`;
         }
     } else if (type instanceof codeactions.EntityType) {
-        const module = (<codeactions.ConcreteEntityType>type).entityQualifiedName.split(".")[0];
-        const entity = (<codeactions.ConcreteEntityType>type).entityQualifiedName.split(".")[1];
-        if (modules.includes(module)) {
-            result = `<a href=../module/${module}.html>${module}</a>.<a href=../entity/${entity}.html>${entity}</a>`;
-        } else {
-            result = `${module}.${entity}`;
+        if(type instanceof codeactions.ParameterizedEntityType){
+            const typeParameterName = (<codeactions.ParameterizedEntityType>type).typeParameter.name;
+            result = `Type parameter '${typeParameterName}'`;
         }
+        else{
+            const module = (<codeactions.ConcreteEntityType>type).entityQualifiedName.split(".")[0];
+            const entity = (<codeactions.ConcreteEntityType>type).entityQualifiedName.split(".")[1];
+            if (modules.includes(module)) {
+                result = `<a href=../module/${module}.html>${module}</a>.<a href=../entity/${entity}.html>${entity}</a>`;
+            } else {
+                result = `${module}.${entity}`;
+            }
+        }    
     } else if (type instanceof codeactions.DateTimeType) {
         result = "DateTime";
     }  else if (type instanceof codeactions.DecimalType) {
