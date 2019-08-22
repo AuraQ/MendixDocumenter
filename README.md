@@ -8,7 +8,7 @@ A command-line NodeJS tool to generate a Javadoc-like website for any Mendix pro
 - Run 'npm update' to download the node modules
 - Create an mdconfig.json file and fill out all the fields using your Mendix details
 - Back in the terminal run 'npm start'
-- The documentation should generate output to the /out/ folder
+- The documentation should generate output to the /docs/ folder, browse http://localhost:3000 to view
 
 ## Configuration file:
 ```json 

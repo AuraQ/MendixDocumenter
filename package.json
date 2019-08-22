@@ -5,10 +5,17 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "tsc && node index.js"
+    "start": "tsc && node index.js && docsify serve ./docs"
   },
-  "author": "rob.graham@auraq.com",
-  "license": "ISC",
+  "author": "iain.lindsay@auraq.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/auraq/MendixDocumenter"
+  },
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/auraq/MendixDocumenter/issues"
+  },
   "dependencies": {
     "@types/node": "^11.13.7",
     "@types/when": "^2.4.33",

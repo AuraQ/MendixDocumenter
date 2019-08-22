@@ -2,3 +2,7 @@ out/
 node_modules/
 mdconfig.json
 index.js
+docs/
+app/*.js
+app/templates/*.js
+projectData.json

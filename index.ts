@@ -1,225 +1,48 @@
 import { MendixSdkClient, Project, Revision, Branch, OnlineWorkingCopy } from 'mendixplatformsdk';
 import { domainmodels, IStructure, projects, microflows, datatypes, codeactions, texts } from 'mendixmodelsdk'
 import fs from 'fs';
+import {index_html_template, main_content_template, module_content_template, 
+    entity_content_template, enumeration_content_template,java_action_content_template,
+    microflow_content_template, page_content_template} from './app/templates';
+import {ProjectData} from './app/namespaces'
+import {getModule, getTypeFromAttributeType, getTypeFromDataType, getTypeFromActionType, getStringFromText} from './app/utils';
 
-/******* HELPER FUNCTIONS *******/
-function getModule(element: IStructure): projects.Module|null {
-    let current = element.unit;
-    while (current) {
-        if (current instanceof projects.Module) {
-            return current;
-        }
-        current = current.container;
-    }
-    return null;
-}
-
-function getTypeFromAttributeType(type: domainmodels.AttributeType): String {
-    let result = "";
-
-    if (type instanceof domainmodels.AutoNumberAttributeType) {
-        result = "AutoNumber";
-    } else if (type instanceof domainmodels.BinaryAttributeType) {
-        result = "Binary";
-    } else if (type instanceof domainmodels.BooleanAttributeType) {
-        result = "Boolean";
-    } else if (type instanceof domainmodels.CurrencyAttributeType) {
-        result = "Currency";
-    } else if (type instanceof domainmodels.DateTimeAttributeType) {
-        result = "DateTime";
-    }  else if (type instanceof domainmodels.DecimalAttributeType) {
-        result = "Decimal";
-    } else if (type instanceof domainmodels.EnumerationAttributeType) {
-        const module = type.enumerationQualifiedName.split(".")[0];
-        const enumeration = type.enumerationQualifiedName.split(".")[1];
-        result = `Enumeration&lt;<a href=../module/${module}.html>${module}</a>.<a href=../enumeration/${enumeration}.html>${enumeration}</a>&gt;`;
-    } else if (type instanceof domainmodels.FloatAttributeType) {
-        result = "Float";
-    } else if (type instanceof domainmodels.HashedStringAttributeType) {
-        result = "HashedString";
-    } else if (type instanceof domainmodels.IntegerAttributeType) {
-        result = "Integer";
-    } else if (type instanceof domainmodels.LongAttributeType) {
-        result = "Long";
-    } else if (type instanceof domainmodels.StringAttributeType) {
-        result = "String";
-    }
-
-    return (result);
-}
-
-function getTypeFromDataType(type: datatypes.DataType): String {
-    let result = null;
-
-    if (type instanceof datatypes.BinaryType) {
-        result = "Binary";
-    } else if (type instanceof datatypes.ListType) {
-        const module = type.entityQualifiedName.split(".")[0];
-        const entity = type.entityQualifiedName.split(".")[1];
-        if (modules.includes(module)) {
-            result = `List&lt;<a href=../module/${module}.html>${module}</a>.<a href=../entity/${entity}.html>${entity}</a>&gt;`;
-        } else {
-            result = `List&lt;${module}.${entity}&gt;`;
-        }
-    } else if (type instanceof datatypes.BooleanType) {
-        result = "Boolean";
-    } else if (type instanceof datatypes.DateTimeType) {
-        result = "DateTime";
-    } else if (type instanceof datatypes.DecimalType) {
-        result = "Decimal";
-    } else if (type instanceof datatypes.EmptyType) {
-        result = "Empty";
-    } else if (type instanceof datatypes.ObjectType) {
-        let inner_type = <datatypes.EntityType>(type);
-        if (inner_type.entityQualifiedName != null) {
-            const module = type.entityQualifiedName.split(".")[0];
-            const entity = type.entityQualifiedName.split(".")[1];
-            result = `<a href=../module/${module}.html>${module}</a>.<a href=../entity/${entity}.html>${entity}</a>`
-        }
-    } else if (type instanceof datatypes.EnumerationType) {
-        const module = type.enumerationQualifiedName.split(".")[0];
-        const enumeration = type.enumerationQualifiedName.split(".")[1];
-        result = `Enumeration&lt;<a href=../module/${module}.html>${module}</a>.<a href=../enumeration/${enumeration}.html>${enumeration}</a>&gt;`;
-    } else if (type instanceof datatypes.FloatType) {
-        result = "Float";
-    } else if (type instanceof datatypes.IntegerType) {
-        result = "Integer";
-    }  else if (type instanceof datatypes.StringType) {
-        result = "String";
-    } else if (type instanceof datatypes.UnknownType) {
-        result = "Unknown";
-    } else if (type instanceof datatypes.VoidType) {
-        result = "-";
-    }
-
-    if (result === null) {
-        result = type.constructor.name;
-    }
-
-    return (result);
-}
-
-function getTypeFromActionType(type: codeactions.Type): String {
-    let result = "";
-
-    if (type instanceof codeactions.BooleanType) {
-        result = "Boolean";
-    } else if (type instanceof codeactions.ListType) {
-        const module = (<codeactions.ConcreteEntityType>type.parameter).entityQualifiedName.split(".")[0];
-        const entity = (<codeactions.ConcreteEntityType>type.parameter).entityQualifiedName.split(".")[1];
-        if (modules.includes(module)) {
-            result = `List&lt;<a href=../module/${module}.html>${module}</a>.<a href=../entity/${entity}.html>${entity}</a>&gt;`;
-        } else {
-            result = `List&lt;${module}.${entity}&gt;`;
-        }
-    } else if (type instanceof codeactions.EntityType) {
-        if(type instanceof codeactions.ParameterizedEntityType){
-            const typeParameterName = (<codeactions.ParameterizedEntityType>type).typeParameter.name;
-            result = `Type parameter '${typeParameterName}'`;
-        }
-        else{
-            const module = (<codeactions.ConcreteEntityType>type).entityQualifiedName.split(".")[0];
-            const entity = (<codeactions.ConcreteEntityType>type).entityQualifiedName.split(".")[1];
-            if (modules.includes(module)) {
-                result = `<a href=../module/${module}.html>${module}</a>.<a href=../entity/${entity}.html>${entity}</a>`;
-            } else {
-                result = `${module}.${entity}`;
-            }
-        }    
-    } else if (type instanceof codeactions.DateTimeType) {
-        result = "DateTime";
-    }  else if (type instanceof codeactions.DecimalType) {
-        result = "Decimal";
-    } else if (type instanceof codeactions.EnumerationType) {
-        const module = type.enumerationQualifiedName.split(".")[0];
-        const enumeration = type.enumerationQualifiedName.split(".")[1];
-        result = `Enumeration&lt;<a href=../module/${module}.html>${module}</a>.<a href=../enumeration/${enumeration}.html>${enumeration}</a>&gt;`;
-    } else if (type instanceof codeactions.FloatType) {
-        result = "Float";
-    } else if (type instanceof codeactions.IntegerType) {
-        result = "Integer";
-    } else if (type instanceof codeactions.StringType) {
-        result = "String";
-    }
-
-    return (result);
-}
-
-function getStringFromText(text: texts.Text): String {
-    const result = text.translations.filter(tl => {
-        return (tl.languageCode === language_code);
-    })[0];
-
-    return (result.text);
-}
-/*******************************/
-
-/****** PROCESS FUNCTIONS ******/
-async function processEntitiesForModule(domain_model: domainmodels.IDomainModel,
-                                        module: projects.IModule) :Promise<String> {
-    let module_content = "";
+/****** DATA RETRIEVAL FUNCTIONS ******/
+async function getEntitiesForModule(domain_model: domainmodels.IDomainModel,
+    module: projects.IModule) :Promise<ProjectData.Entity[]> {
+    let entities : ProjectData.Entity[] = [];
 
     for (let j = 0; j < domain_model.entities.length; ++j) {
         const entity = await domain_model.entities[j].load();
         console.log("  -Entity: " + entity.name);
 
-        let entity_content = 
-            `<html>
-                <head>
-                <title>${entity.name}::Entity</title>
-                <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-                </head>
-                <body style="background-color:#f4f4f4;">
-                <div style="width:80%; margin:auto; background-color:#ffffff; padding:3em;-webkit-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);-moz-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);">
-                    <a href="../${project_name}.html">Home</a>/<a href="../module/${module.name}.html">${module.name}</a>/<a href="../entity/${entity.name}.html">${entity.name}</a>
-                    <br />
-                    <h1 style="display:inline">${entity.name}</h1>
-                    <h4 style="display:inline">::Entity</h4>`
+        const entityName = entity.name;
+        const entityDocumentation = entity.documentation;
+
+        let entityGeneralization : string | undefined = undefined;
 
         if (entity.generalization instanceof domainmodels.Generalization) {
             const generalization_module = (await entity.generalization.load()).generalizationQualifiedName.split(".")[0];
             const generalization_entity = entity.generalization.generalizationQualifiedName.split(".")[1];
-            const generalization = modules.includes(generalization_module)
-                ? `<a href="../module/${generalization_module}.html">${generalization_module}.</a><a href="../entity/${generalization_entity}.html">${generalization_entity}</a>`
-                : `${generalization_module}.${generalization_entity}`;
-            entity_content += 
-                `<br/><p style="display:inline"><b>Generalization</b>: ${generalization}</p>`;
+            
+            entityGeneralization = `${generalization_module}.${generalization_entity}`;
         }
 
-        entity_content += 
-            `<p>${entity.documentation}</p>
-            <h3>Attributes</h3>
-            <table class="table_entity_attributes table">
-                <tr>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Description</th>
-                </tr>`
+        let attributes : ProjectData.Attribute[] = [];
 
         for (let k = 0; k < entity.attributes.length; ++k) {
+            
             const attribute = await entity.attributes[k].load();
             console.log("    -Attribute: " + attribute.name);
-
-            let attribute_content = 
-                `<tr>
-                    <td>${attribute.name}</td>
-                    <td>${getTypeFromAttributeType(attribute.type)}</td>
-                    <td>${attribute.documentation}</td>
-                </tr>`;
-
-            entity_content += attribute_content;
+        
+            attributes.push({
+                name : attribute.name,
+                documentation : attribute.documentation,
+                type : getTypeFromAttributeType(attribute.type)
+            });
         }
 
-        entity_content += 
-            `</table>
-            <h3>Event Handlers</h3>
-            <table class="table_entity_events table">
-            <tr>
-                <th>Moment</th>
-                <th>Event</th>
-                <th>Microflow</th>
-                <th>Raises Error</th>
-            </tr>`;
+        let eventHandlers : ProjectData.EventHandler[] = [];
 
         for (let k = 0; k < entity.eventHandlers.length; ++k) {
             const event_handler = await entity.eventHandlers[k].load();
@@ -227,36 +50,30 @@ async function processEntitiesForModule(domain_model: domainmodels.IDomainModel,
 
             const microflow_module = (event_handler.microflowQualifiedName != null) ? event_handler.microflowQualifiedName.split(".")[0] : "";
             const microflow_name = (event_handler.microflow != null) ? event_handler.microflow.name : "";
-            
-            let event_content = 
-                `<tr>
-                    <td>${event_handler.moment.name}</td>
-                    <td>${event_handler.event.name}</td>
-                    <td><a href="../module/${microflow_module}.html">${microflow_module}.</a><a href="../microflow/${microflow_name}.html">${microflow_name}</a></td>
-                    <td>${event_handler.raiseErrorOnFalse}</td>
-                </tr>`;
-            entity_content += event_content;
+
+            const microflow = `${microflow_module}.${microflow_name}`;
+            eventHandlers.push({
+                moment : event_handler.moment.name,
+                event : event_handler.event.name,
+                microflow : microflow,
+                raisesError : event_handler.raiseErrorOnFalse
+            });
         }
 
-        entity_content += `</table></div></body></html>`
-        fs.writeFileSync(`out/entity/${entity.name}.html`, entity_content);
-
-        module_content += `<a href="../entity/${entity.name}.html">${entity.name}</a><br />`;
+        entities.push({
+            name : entityName,
+            documentation : entityDocumentation,
+            generalization : entityGeneralization,
+            attributes,
+            eventHandlers
+        });
     }
 
-    return (Promise.resolve(module_content));
+    return (Promise.resolve(entities));
 }
 
-async function processAssociationsForDomainModel(domain_model: domainmodels.IDomainModel) :Promise<String> {
-    let module_content = `
-    <table class="table_association table">
-    <tr>
-        <th>Name</th>
-        <th>Owner</th>
-        <th>Parent</th>
-        <th>Child</th>
-        <th>Description</th>
-    </tr>`
+async function getAssociationsForDomainModel(domain_model: domainmodels.IDomainModel) :Promise<ProjectData.Association[]> {
+    let associations : ProjectData.Association[] = [];
 
     for (let j = 0; j < domain_model.associations.length; ++j) {
         const association = await domain_model.associations[j].load();
@@ -267,24 +84,25 @@ async function processAssociationsForDomainModel(domain_model: domainmodels.IDom
         const parent_module = (parent.qualifiedName != null) ? parent.qualifiedName.split(".")[0] : "";
         const child_module = (child.qualifiedName != null) ? child.qualifiedName.split(".")[0] : "";
 
-        module_content += 
-            `<tr>
-                <td>${association.name}</td>
-                <td>${association.owner.name}</td>
-                <td><a href="../module/${parent_module}.html">${parent_module}</a>.<a href="../entity/${association.parent.name}.html">${association.parent.name}</a></td>
-                <td><a href="../module/${child_module}.html">${child_module}</a>.<a href="../entity/${association.child.name}.html">${association.child.name}</a></td>
-                <td>${association.documentation}</td>
-            </tr>`;
-    }
-    module_content += `</table>`
+        const parentName = `${parent_module}.${association.parent.name}`;
+        const childName = `${child_module}.${association.child.name}`;
 
-    return (Promise.resolve(module_content));
+        associations.push({
+            name : association.name,
+            owner : association.owner.name,
+            parent : parentName,
+            child : childName,
+            documentation : association.documentation
+        });
+    }
+
+    return (Promise.resolve(associations));
 }
 
-async function processEnumerationsForModule(working_copy: OnlineWorkingCopy,
+async function getEnumerationsForModule(working_copy: OnlineWorkingCopy,
                                             domain_model: domainmodels.IDomainModel,
-                                            module: projects.IModule) :Promise<String> {
-    let module_content = ""
+                                            module: projects.IModule) :Promise<ProjectData.Enumeration[]> {
+    let enumerations : ProjectData.Enumeration[] = [];
 
     const d_mod = getModule(domain_model);
     let module_enum = working_copy.model().allEnumerations().filter(enumeration => {
@@ -298,7 +116,7 @@ async function processEnumerationsForModule(working_copy: OnlineWorkingCopy,
     });
 
     if (module_enum.length <=0) {
-        return (Promise.resolve(module_content));
+        return (Promise.resolve(enumerations));
     }
 
     module_enum = module_enum.sort((one, two) => (one.name > two.name ? 1 : -1));
@@ -306,51 +124,35 @@ async function processEnumerationsForModule(working_copy: OnlineWorkingCopy,
     for (let j = 0; j < module_enum.length; ++j) {
         const enumeration = await module_enum[j].load();
         console.log("  -Enumeration: " + enumeration.name);
-        module_content += `<a href="../enumeration/${enumeration.name}.html">${enumeration.name}</a><br />`
-
-        let enumeration_content = 
-            `<html>
-                <head>
-                <title>${enumeration.name}::Enumeration</title>
-                <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-                </head>
-                <body style="background-color:#f4f4f4;">
-                <div style="width:80%; margin:auto; background-color:#ffffff; padding:3em;-webkit-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);-moz-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);">
-                    <a href="../${project_name}.html">Home</a>/<a href="../module/${module.name}.html">${module.name}</a>/<a href="../enumeration/${enumeration.name}.html">${enumeration.name}</a>
-                    <br />
-                    <h1 style="display:inline">${enumeration.name}</h1>
-                    <h4 style="display:inline">::Enumeration</h4>
-                    <p>${enumeration.documentation}</p>
-                    <table class="table_enumeration_values table">
-                        <tr>
-                            <th>Caption</th>
-                            <th>Name</th>
-                        </tr>`;
+                
+        let enumerationItems : ProjectData.EnumerationItem[] = [];
 
         for (let k = 0; k < enumeration.values.length; ++k) {
             const pair = await enumeration.values[k].load();
 
-            const caption = getStringFromText(pair.caption);
+            const caption = getStringFromText(pair.caption, language_code);
             console.log("    -Caption: " + caption);
 
-            enumeration_content +=
-                `<tr>
-                    <td>${caption}</td>
-                    <td>${pair.name}</td>
-                </tr>`;
+            enumerationItems.push({
+                caption,
+                name : pair.name
+            });
         }
 
-        enumeration_content += `</table></div></body></html>`
-        fs.writeFileSync(`out/enumeration/${enumeration.name}.html`, enumeration_content);
+        enumerations.push({
+            name : enumeration.name,
+            documentation : enumeration.documentation,
+            items : enumerationItems
+        });
     }
 
-    return (Promise.resolve(module_content));
+    return (Promise.resolve(enumerations));
 }
 
-async function processMicroflowsForModule(working_copy: OnlineWorkingCopy, 
+async function getMicroflowsForModule(working_copy: OnlineWorkingCopy, 
                                           domain_model: domainmodels.IDomainModel,
-                                          module: projects.IModule) :Promise<String> {
-    let module_content = "";
+                                          module: projects.IModule) :Promise<ProjectData.Microflow[]> {
+    let pdMicroflows : ProjectData.Microflow[] = [];
 
     const d_mod = getModule(domain_model);
     let module_mf = working_copy.model().allMicroflows().filter(microflow => {
@@ -368,31 +170,10 @@ async function processMicroflowsForModule(working_copy: OnlineWorkingCopy,
     for (let j = 0; j < module_mf.length; ++j) {
         const microflow = await module_mf[j].load();
         console.log("  -Microflow: " + microflow.name);
-        module_content += `<a href="../microflow/${microflow.name}.html">${microflow.name}</a><br />`
 
         let return_type = getTypeFromDataType(await (microflow.microflowReturnType.load()));
 
-        let microflow_content = 
-            `<html>
-                <head>
-                <title>${microflow.name}::Microflow</title>
-                <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-                </head>
-                <body style="background-color:#f4f4f4;">
-                <div style="width:80%; margin:auto; background-color:#ffffff; padding:3em;-webkit-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);-moz-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);">
-                    <a href="../${project_name}.html">Home</a>/<a href="../module/${module.name}.html">${module.name}</a>/<a href="../microflow/${microflow.name}.html">${microflow.name}</a>
-                    <br />
-                    <h1 style="display:inline">${microflow.name}</h1>
-                    <h4 style="display:inline">::Microflow</h4>
-                    <p>${microflow.documentation}</p>
-                    <p><b>Returns:<b /> ${return_type}</p>
-                    <h3>Parameters</h3>
-                    <table class="table_microflow_parameters table">
-                        <tr>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Description</th>
-                        </tr>`
+        let pdMicroflowParameters : ProjectData.MicroflowParameter[] = [];
 
         const parameters = microflow.objectCollection.objects.filter(function(obj) {
             if (obj instanceof microflows.MicroflowParameterObject) {
@@ -405,26 +186,29 @@ async function processMicroflowsForModule(working_copy: OnlineWorkingCopy,
             console.log("    -Parameter: " + param.name);
 
             let type = getTypeFromDataType(await (param.variableType.load()));
-
-            microflow_content += 
-                `<tr>
-                    <td>${param.name}</th>
-                    <td>${type}</th>
-                    <td>${param.documentation}</th>
-                </tr>`
+            
+            pdMicroflowParameters.push({
+                name : param.name,
+                documentation : param.documentation,
+                type
+            });
         }
 
-        microflow_content += `</table></div></body></html>`
-        fs.writeFileSync(`out/microflow/${microflow.name}.html`, microflow_content);
+        pdMicroflows.push({
+            name : microflow.name,
+            documentation : microflow.documentation,
+            returnType : return_type,
+            parameters : pdMicroflowParameters
+        });
     }
 
-    return (Promise.resolve(module_content));
+    return (Promise.resolve(pdMicroflows));
 }
 
-async function processJavaActionsForModule(working_copy: OnlineWorkingCopy,
+async function getJavaActionsForModule(working_copy: OnlineWorkingCopy,
                                            domain_model: domainmodels.IDomainModel,
-                                           module: projects.IModule) :Promise<String> {
-    let module_content = "";
+                                           module: projects.IModule) :Promise<ProjectData.JavaAction[]> {
+    let pdJavaActions : ProjectData.JavaAction[] = [];
 
     const d_mod = getModule(domain_model);
     let module_ja = working_copy.model().allJavaActions().filter(java_action => {
@@ -442,57 +226,39 @@ async function processJavaActionsForModule(working_copy: OnlineWorkingCopy,
     for (let j = 0; j < module_ja.length; ++j) {
         const java_action = await module_ja[j].load();
         console.log("  -Java Action: " + java_action.name);
-        module_content += `<a href="../java_action/${java_action.name}.html">${java_action.name}</a><br />`
 
         let return_type = getTypeFromActionType(await (java_action.actionReturnType.load()));
-
-        let java_action_content = 
-            `<html>
-                <head>
-                <title>${java_action.name}::Java Action</title>
-                <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-                </head>
-                <body style="background-color:#f4f4f4;">
-                <div style="width:80%; margin:auto; background-color:#ffffff; padding:3em;-webkit-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);-moz-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);">
-                    <a href="../${project_name}.html">Home</a>/<a href="../module/${module.name}.html">${module.name}</a>/<a href="../java_action/${java_action.name}.html">${java_action.name}</a>
-                    <br />
-                    <h1 style="display:inline">${java_action.name}</h1>
-                    <h4 style="display:inline">::Java Action</h4>
-                    <p>${java_action.documentation}</p>
-                    <p><b>Returns:</b> ${return_type}</p>
-                    <h3>Parameters</h3>
-                    <table class="table_java_action_parameters table">
-                        <tr>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Description</th>
-                        </tr>`
     
+        let pdJavaActionParameters : ProjectData.JavaActionParameter[] = [];
+
         for (let k = 0; k < java_action.actionParameters.length; ++k) {
             let param = await java_action.actionParameters[k].load();
             console.log("    -Parameter: " + param.name);
 
             let type = getTypeFromActionType((await (<codeactions.BasicParameterType>param.actionParameterType).load()).type);
 
-            java_action_content += 
-                `<tr>
-                    <td>${param.name}</th>
-                    <td>${type}</th>
-                    <td>${param.description}</th>
-                </tr>`
+            pdJavaActionParameters.push({
+                name : param.name,
+                description : param.description,
+                type
+            });
         }
 
-        java_action_content += `</table></div></body></html>`
-        fs.writeFileSync(`out/java_action/${java_action.name}.html`, java_action_content);
+        pdJavaActions.push({
+            name : java_action.name,
+            documentation : java_action.documentation,
+            returnType : return_type,
+            parameters : pdJavaActionParameters
+        });
     }
 
-    return (Promise.resolve(module_content));
+    return (Promise.resolve(pdJavaActions));
 }
 
-async function processPagesForModule(working_copy: OnlineWorkingCopy,
+async function getPagesForModule(working_copy: OnlineWorkingCopy,
                                      domain_model: domainmodels.IDomainModel,
-                                     module: projects.IModule) :Promise<String> {
-    let module_content = "";
+                                     module: projects.IModule) :Promise<ProjectData.Page[]> {
+    let pdPages : ProjectData.Page[] = [];
 
     const d_mod = getModule(domain_model);
     let module_pages = working_copy.model().allPages().filter(page => {
@@ -511,34 +277,115 @@ async function processPagesForModule(working_copy: OnlineWorkingCopy,
         const page = await module_pages[j].load();
 
         console.log("  -Page: " + page.name);
-        module_content += `<a href="../page/${page.name}.html">${page.name}</a><br />`;
-
-        //let context_type = page.
-        let page_content = 
-            `<html>
-                <head>
-                    <title>${page.name}::Page</title>
-                    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-                </head>
-                <body style="background-color:#f4f4f4;">
-                    <div style="width:80%; margin:auto; background-color:#ffffff; padding:3em;-webkit-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);-moz-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);">
-                        <a href="../${project_name}.html">Home</a>/<a href="../module/${module.name}.html">${module.name}</a>/<a href="../page/${page.name}.html">${page.name}</a>
-                        <br />
-                        <h1 style="display:inline">${page.name}</h1>
-                        <h4 style="display:inline">::Page</h4>
-                        <p>${page.documentation}</p>
-                        <p><b>Title:</b> ${getStringFromText(page.title)}</p>
-                        <p><b>URL:</b> ${page.url}</p>
-                        <p><b>Class:</b> ${page.class}</p>
-                        <p><b>Layout:</b> ${page.layoutCall.layoutQualifiedName}</p>
-                    </div>
-                </body>
-            </html>`
-
-        fs.writeFileSync(`out/page/${page.name}.html`, page_content);
+        
+        pdPages.push({
+            name : page.name,
+            documentation : page.documentation,
+            title : getStringFromText(page.title, language_code),
+            url : page.url,
+            class : page.class,
+            layout : page.layoutCall.layoutQualifiedName
+        });
     }
 
-    return (module_content);
+    return (pdPages);
+}
+
+
+/*******************************/
+
+/****** GENERATE DOCUMENTATION FUNCTIONS ******/
+function generateDocumentationForProject(pdProject : ProjectData.Project){
+    // set up output folders
+    if (!fs.existsSync("./docs")) {
+    fs.mkdirSync("./docs");
+    }
+    if (!fs.existsSync("./docs/entity")) {
+    fs.mkdirSync("./docs/entity");
+    }
+    if (!fs.existsSync("./docs/microflow")) {
+    fs.mkdirSync("./docs/microflow");
+    }   
+    if (!fs.existsSync("./docs/module")) {
+    fs.mkdirSync("./docs/module");
+    }
+    if (!fs.existsSync("./docs/enumeration")) {
+    fs.mkdirSync("./docs/enumeration");
+    }
+    if (!fs.existsSync("./docs/java_action")) {
+    fs.mkdirSync("./docs/java_action");
+    }
+    if (!fs.existsSync("./docs/page")) {
+    fs.mkdirSync("./docs/page");
+    }
+
+    // initialise docsify
+    fs.writeFileSync(`./docs/index.html`, index_html_template(pdProject));
+    fs.writeFileSync(`./docs/.nojekyll`, '');
+
+    let main_content = main_content_template(pdProject);
+    
+    fs.writeFileSync(`./docs/${pdProject.name}.md`, main_content);
+
+    pdProject.modules.forEach((m)=>{
+        generateDocumentationForModule(m);
+
+        m.entities.forEach((e)=>{
+            generateDocumentationForEntity(m, e);
+        });
+
+        m.enumerations.forEach((e)=>{
+            generateDocumentationForEnumeration(m, e);
+        });
+
+        m.javaActions.forEach((j)=>{
+            generateDocumentationForJavaAction(m, j);
+        });
+
+        m.microflows.forEach((mf)=>{
+            generateDocumentationForMicroflow(m, mf);
+        });
+
+        m.pages.forEach((p)=>{
+            generateDocumentationForPage(m, p);
+        });
+    });
+}
+
+function generateDocumentationForModule(pdModule : ProjectData.Module){
+    let content = module_content_template(pdModule,modules);        
+
+    fs.writeFileSync(`docs/module/${pdModule.name}.md`, content);
+}
+
+function generateDocumentationForEntity(pdModule : ProjectData.Module, pdEntity : ProjectData.Entity){
+    let content = entity_content_template(pdEntity,modules);        
+
+    fs.writeFileSync(`docs/entity/${pdModule.name}_${pdEntity.name}.md`, content);
+}
+
+function generateDocumentationForEnumeration(pdModule : ProjectData.Module, pdEnumeration : ProjectData.Enumeration){
+    let content = enumeration_content_template(pdEnumeration);        
+
+    fs.writeFileSync(`docs/enumeration/${pdModule.name}_${pdEnumeration.name}.md`, content);
+}
+
+function generateDocumentationForJavaAction(pdModule : ProjectData.Module, pdJavaAction : ProjectData.JavaAction){
+    let content = java_action_content_template(pdJavaAction, modules);        
+
+    fs.writeFileSync(`docs/java_action/${pdModule.name}_${pdJavaAction.name}.md`, content);
+}
+
+function generateDocumentationForMicroflow(pdModule : ProjectData.Module, pdMicroflow : ProjectData.Microflow){
+    let content = microflow_content_template(pdMicroflow, modules);        
+
+    fs.writeFileSync(`docs/microflow/${pdModule.name}_${pdMicroflow.name}.md`, content);
+}
+
+function generateDocumentationForPage(pdModule : ProjectData.Module, pdPage : ProjectData.Page){
+    let content = page_content_template(pdPage);        
+
+    fs.writeFileSync(`docs/page/${pdModule.name}_${pdPage.name}.md`, content);
 }
 /*******************************/
 
@@ -565,120 +412,65 @@ for (let m in config["modules"]) {
 const client = new MendixSdkClient(username, api_key);
 const project = new Project(client, project_id, project_name);
 
+const skipDataRetrieval : boolean = true;
+
 async function main() {
-    const working_copy = await client.platform().createOnlineWorkingCopy(project, new Revision(
-        revision_number, new Branch(project, branch_name)));
-
-    if (!fs.existsSync("./out")) {
-        fs.mkdirSync("./out");
-    }
-    if (!fs.existsSync("./out/entity")) {
-        fs.mkdirSync("./out/entity");
-    }
-    if (!fs.existsSync("./out/microflow")) {
-        fs.mkdirSync("./out/microflow");
-    }
-    if (!fs.existsSync("./out/module")) {
-        fs.mkdirSync("./out/module");
-    }
-    if (!fs.existsSync("./out/enumeration")) {
-        fs.mkdirSync("./out/enumeration");
-    }
-    if (!fs.existsSync("./out/java_action")) {
-        fs.mkdirSync("./out/java_action");
-    }
-    if (!fs.existsSync("./out/page")) {
-        fs.mkdirSync("./out/page");
-    }
-
-    let main_content = 
-        `<html>
-            <head>
-            <title>${project_name}</title>
-            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-            </head>
-            <body style="background-color:#f4f4f4;">
-            <div style="width:80%; margin:auto; background-color:#ffffff; padding:3em;-webkit-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);-moz-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);">
-                <a href="${project_name}.html">Home</a>
-                <br />
-                <h1 style="display:inline">${project_name}</h1>
-                <p>${project_description}</p>
-                <h3>Modules</h3>`
-
-    let loaded_modules = working_copy.model().root.modules.filter(function(md) {
-        return modules.includes(md.name);
-    });
-
-    loaded_modules = loaded_modules.sort((one, two) => one.name < two.name ? -1 : 1);
+    let pdProject : ProjectData.Project | null = null;
+    if(!skipDataRetrieval){
+        const working_copy = await client.platform().createOnlineWorkingCopy(project, new Revision(
+            revision_number, new Branch(project, branch_name)));
     
-    for (let i = 0; i < loaded_modules.length; ++i) {
-        const module = loaded_modules[i];
-        const domain_model = await module.domainModel.load();
-        
-        if (!modules.includes(domain_model.containerAsModule.name)) {
-            continue;
+        // LOAD DATA
+        let loaded_modules = working_copy.model().root.modules.filter(function(md) {
+            return modules.includes(md.name);
+        });
+    
+        let pdModules : ProjectData.Module[] = [];
+    
+        for (let i = 0; i < loaded_modules.length; ++i) {
+            const module = loaded_modules[i];
+            const domain_model = await module.domainModel.load();
+            
+            if (!modules.includes(domain_model.containerAsModule.name)) {
+                continue;
+            }
+    
+            const entities : ProjectData.Entity[] = await getEntitiesForModule(domain_model, module);
+            const associations : ProjectData.Association[] = await getAssociationsForDomainModel(domain_model); 
+            const enumerations : ProjectData.Enumeration[] = await getEnumerationsForModule(working_copy, domain_model, module);
+            const microflows : ProjectData.Microflow[] = await getMicroflowsForModule(working_copy, domain_model, module);
+            const javaActions : ProjectData.JavaAction[] = await getJavaActionsForModule(working_copy, domain_model, module);
+            const pages : ProjectData.Page[] = await getPagesForModule(working_copy, domain_model, module);
+    
+            pdModules.push({
+                name : module.name,
+                documentation : domain_model.documentation,
+                entities,
+                associations,
+                enumerations,
+                microflows,
+                javaActions,
+                pages
+            });
+        };
+    
+        pdProject = {
+            name : project_name,
+            description : project_description,
+            modules : pdModules
         }
-        console.log("Module: " + module.name);
-        const module_doc = domain_model.documentation;
-
-        let module_content = 
-        `<html>
-            <head>
-            <title>${module.name}::Module</title>
-            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-            </head>
-            <body style="background-color:#f4f4f4;">
-            <div style="width:80%; margin:auto; background-color:#ffffff; padding:3em;-webkit-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);-moz-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);">
-                <a href="../${project_name}.html">Home</a>/<a href="../module/${module.name}.html">${module.name}</a>
-                <br />
-                <h1 style="display:inline">${module.name}</h1>
-                <h4 style="display:inline">::Module</h4>
-                <p>${module_doc}</p>
-                <h3>Entities</h3>
-                ${(await processEntitiesForModule(domain_model, module))}
-                <br /><h3>Associations</h3>
-                ${(await processAssociationsForDomainModel(domain_model))}
-                <div class="document_container">
-                    <div class="row">
-                        <div class="col-sm-3">
-                            <h3>Enumerations</h3>
-                        </div>
-                        <div class="col-sm-3">
-                            <h3>Microflows</h3>
-                        </div>
-                        <div class="col-sm-3">
-                            <h3>Java Actions</h3>
-                        </div>
-                        <div class="col-sm-3">
-                            <h3>Pages</h3>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-3" style="align:center">
-                            ${(await processEnumerationsForModule(working_copy, domain_model, module))}
-                        </div>
-                        <div class="col-sm-3">
-                            ${(await processMicroflowsForModule(working_copy, domain_model, module))}
-                        </div>
-                        <div class="col-sm-3">
-                            ${(await processJavaActionsForModule(working_copy, domain_model, module))}
-                        </div>
-                        <div class="col-sm-3">
-                            ${(await processPagesForModule(working_copy, domain_model, module))}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            </body>
-        </html>`
-
-        fs.writeFileSync(`out/module/${module.name}.html`, module_content);
-
-        main_content += `<a href="module/${module.name}.html">${module.name}</a><br />`;
-    };
     
-    main_content += `</div></body></html>`
-    fs.writeFileSync(`out/${project_name}.html`, main_content);
+        fs.writeFileSync(`projectData.json`, JSON.stringify(pdProject));
+    }
+
+    if(!pdProject){
+        // load from file
+        let rawProjectData = fs.readFileSync("projectData.json", "utf8");
+        pdProject = JSON.parse(rawProjectData);
+    }
+    
+    //todo - generate documentation
+    generateDocumentationForProject(pdProject as ProjectData.Project);
 }
 
 main();
