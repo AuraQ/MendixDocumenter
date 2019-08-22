@@ -32,3 +32,4 @@ Outstanding:
         ☐ Compression of functions? @low @started(19-04-26 14:18)
         ✔ Generate output folders at runtime if missing @done(19-04-29 15:31)
         ☐ Implement a search function for contains(filename) on all files generated.
+        ☐ Add colour coded logging to differentiate between data retrieval and generation @low

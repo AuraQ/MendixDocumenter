@@ -109,3 +109,17 @@ export namespace ProjectData{
         typeParameter? : string
     }
 }
+
+export namespace ProjectConfig{
+    export interface Config {
+        username : string,
+        api_key : string,
+        project_name : string,
+        project_description : string,
+        project_id : string,
+        language_code : string,
+        branch_name : string,
+        revision_number : number,
+        modules : string[]
+    }
+}

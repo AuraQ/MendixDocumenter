@@ -1,4 +1,4 @@
-import { domainmodels, IStructure, projects, microflows, datatypes, codeactions, texts } from 'mendixmodelsdk'
+import { domainmodels, IStructure, projects, datatypes, codeactions, texts } from 'mendixmodelsdk'
 import {ProjectData} from './namespaces';
 
 export function getModule(element: IStructure): projects.Module|null {

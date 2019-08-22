@@ -6,3 +6,4 @@ docs/
 app/*.js
 app/templates/*.js
 projectData.json
+mdconfig.js
