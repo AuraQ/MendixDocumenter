@@ -1,4 +1,4 @@
-
+-
 Outstanding:
     Entities:
         ☐ Add validation rules to entities 
@@ -6,7 +6,7 @@ Outstanding:
         ☐ Add association link to entites @low
         ✔ Add links to enumeration pages used by attributes @done(19-04-30 16:15)
         ✔ Show parent class on entities if exist @done(19-04-29 11:24)
-        ☐ If we have the same name entity in different modules - oh no @critical 
+        ✔ If we have the same name entity in different modules @done(19-08-22)
     Enumerations:
         ✔ Create list of enumerations per module @done(19-04-26 14:50)
         ✔ Create folder of pages for enumerations @done(19-04-26 14:50)

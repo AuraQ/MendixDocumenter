@@ -1,6 +1,6 @@
 import {ProjectData} from '../namespaces';
 
-const index_html_template = (pdProject : ProjectData.Project) => 
+export default (pdProject : ProjectData.Project) => 
 `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,5 +23,3 @@ const index_html_template = (pdProject : ProjectData.Project) =>
   <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
 </body>
 </html>`;
-
-export default index_html_template;

@@ -1,9 +1,9 @@
 import { MendixSdkClient, Project, Revision, Branch, OnlineWorkingCopy } from 'mendixplatformsdk';
 import { domainmodels, IStructure, projects, microflows, datatypes, codeactions, texts } from 'mendixmodelsdk'
 import fs from 'fs';
-import {index_html_template, main_content_template, module_content_template, 
-    entity_content_template, enumeration_content_template,java_action_content_template,
-    microflow_content_template, page_content_template} from './app/templates';
+import {indexHtmlTemplate, projectTemplate, moduleTemplate, 
+    entityTemplate, enumerationTemplate,javaActionTemplate,
+    microflowTemplate, pageTemplate} from './app/templates';
 import {ProjectData} from './app/namespaces'
 import {getModule, getTypeFromAttributeType, getTypeFromDataType, getTypeFromActionType, getStringFromText} from './app/utils';
 
@@ -298,35 +298,36 @@ async function getPagesForModule(working_copy: OnlineWorkingCopy,
 function generateDocumentationForProject(pdProject : ProjectData.Project){
     // set up output folders
     if (!fs.existsSync("./docs")) {
-    fs.mkdirSync("./docs");
+        fs.mkdirSync("./docs");
     }
     if (!fs.existsSync("./docs/entity")) {
-    fs.mkdirSync("./docs/entity");
+        fs.mkdirSync("./docs/entity");
     }
     if (!fs.existsSync("./docs/microflow")) {
-    fs.mkdirSync("./docs/microflow");
+        fs.mkdirSync("./docs/microflow");
     }   
     if (!fs.existsSync("./docs/module")) {
-    fs.mkdirSync("./docs/module");
+        fs.mkdirSync("./docs/module");
     }
     if (!fs.existsSync("./docs/enumeration")) {
-    fs.mkdirSync("./docs/enumeration");
+        fs.mkdirSync("./docs/enumeration");
     }
     if (!fs.existsSync("./docs/java_action")) {
-    fs.mkdirSync("./docs/java_action");
+        fs.mkdirSync("./docs/java_action");
     }
     if (!fs.existsSync("./docs/page")) {
-    fs.mkdirSync("./docs/page");
+        fs.mkdirSync("./docs/page");
     }
 
     // initialise docsify
-    fs.writeFileSync(`./docs/index.html`, index_html_template(pdProject));
+    fs.writeFileSync(`./docs/index.html`, indexHtmlTemplate(pdProject));
     fs.writeFileSync(`./docs/.nojekyll`, '');
 
-    let main_content = main_content_template(pdProject);
-    
-    fs.writeFileSync(`./docs/${pdProject.name}.md`, main_content);
+    // create main page
+    let content = projectTemplate(pdProject);    
+    fs.writeFileSync(`./docs/${pdProject.name}.md`, content);
 
+    // generate pages for modules and related objects
     pdProject.modules.forEach((m)=>{
         generateDocumentationForModule(m);
 
@@ -353,37 +354,37 @@ function generateDocumentationForProject(pdProject : ProjectData.Project){
 }
 
 function generateDocumentationForModule(pdModule : ProjectData.Module){
-    let content = module_content_template(pdModule,modules);        
+    let content = moduleTemplate(pdModule,modules);        
 
     fs.writeFileSync(`docs/module/${pdModule.name}.md`, content);
 }
 
 function generateDocumentationForEntity(pdModule : ProjectData.Module, pdEntity : ProjectData.Entity){
-    let content = entity_content_template(pdEntity,modules);        
+    let content = entityTemplate(pdEntity,modules);        
 
     fs.writeFileSync(`docs/entity/${pdModule.name}_${pdEntity.name}.md`, content);
 }
 
 function generateDocumentationForEnumeration(pdModule : ProjectData.Module, pdEnumeration : ProjectData.Enumeration){
-    let content = enumeration_content_template(pdEnumeration);        
+    let content = enumerationTemplate(pdEnumeration);        
 
     fs.writeFileSync(`docs/enumeration/${pdModule.name}_${pdEnumeration.name}.md`, content);
 }
 
 function generateDocumentationForJavaAction(pdModule : ProjectData.Module, pdJavaAction : ProjectData.JavaAction){
-    let content = java_action_content_template(pdJavaAction, modules);        
+    let content = javaActionTemplate(pdJavaAction, modules);        
 
     fs.writeFileSync(`docs/java_action/${pdModule.name}_${pdJavaAction.name}.md`, content);
 }
 
 function generateDocumentationForMicroflow(pdModule : ProjectData.Module, pdMicroflow : ProjectData.Microflow){
-    let content = microflow_content_template(pdMicroflow, modules);        
+    let content = microflowTemplate(pdMicroflow, modules);        
 
     fs.writeFileSync(`docs/microflow/${pdModule.name}_${pdMicroflow.name}.md`, content);
 }
 
 function generateDocumentationForPage(pdModule : ProjectData.Module, pdPage : ProjectData.Page){
-    let content = page_content_template(pdPage);        
+    let content = pageTemplate(pdPage);        
 
     fs.writeFileSync(`docs/page/${pdModule.name}_${pdPage.name}.md`, content);
 }
@@ -412,7 +413,7 @@ for (let m in config["modules"]) {
 const client = new MendixSdkClient(username, api_key);
 const project = new Project(client, project_id, project_name);
 
-const skipDataRetrieval : boolean = true;
+const skipDataRetrieval : boolean = false;
 
 async function main() {
     let pdProject : ProjectData.Project | null = null;

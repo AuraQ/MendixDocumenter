@@ -1,7 +1,7 @@
 import {ProjectData} from '../namespaces';
 import {getModuleEntityLinkFromString} from './utils';
 
-const module_content_template = (pdModule : ProjectData.Module, configuredModules : string[]) => 
+export default (pdModule : ProjectData.Module, configuredModules : string[]) => 
 `# ${pdModule.name} [*Module*]
 
 ${pdModule.documentation}
@@ -37,5 +37,3 @@ ${pdModule.pages.map(
     (p)=>`[${p.name}](/page/${pdModule.name}_${p.name}.md)`
 ).join('  \r\n')}
 `;
-
-export default module_content_template;
