@@ -120,6 +120,7 @@ export namespace ProjectConfig{
         language_code : string,
         branch_name : string,
         revision_number : number,
-        modules : string[]
+        modules : string[],
+        saveProjectDataAsJson : boolean
     }
 }
