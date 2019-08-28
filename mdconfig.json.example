@@ -11,5 +11,6 @@
 		"",
 		""
 	],
-	"saveProjectDataAsJson" : true
+	"saveProjectDataAsJson" : true,
+    "rootOutputFolder" : "./docs"
 }

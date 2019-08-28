@@ -6,94 +6,101 @@ import {indexHtmlTemplate, projectTemplate, moduleTemplate,
 
 export default (projectConfig : ProjectConfig.Config, pdProject : ProjectData.Project) => {
     // set up output folders
-    if (!fs.existsSync("./docs")) {
-        fs.mkdirSync("./docs");
+    const {rootOutputFolder} = projectConfig;
+    if (!fs.existsSync(rootOutputFolder)) {
+        fs.mkdirSync(rootOutputFolder);
     }
-    if (!fs.existsSync("./docs/entity")) {
-        fs.mkdirSync("./docs/entity");
+    if (!fs.existsSync(`${rootOutputFolder}/entity`)) {
+        fs.mkdirSync(`${rootOutputFolder}/entity`);
     }
-    if (!fs.existsSync("./docs/microflow")) {
-        fs.mkdirSync("./docs/microflow");
+    if (!fs.existsSync(`${rootOutputFolder}/microflow`)) {
+        fs.mkdirSync(`${rootOutputFolder}/microflow`);
     }   
-    if (!fs.existsSync("./docs/module")) {
-        fs.mkdirSync("./docs/module");
+    if (!fs.existsSync(`${rootOutputFolder}/module`)) {
+        fs.mkdirSync(`${rootOutputFolder}/module`);
     }
-    if (!fs.existsSync("./docs/enumeration")) {
-        fs.mkdirSync("./docs/enumeration");
+    if (!fs.existsSync(`${rootOutputFolder}/enumeration`)) {
+        fs.mkdirSync(`${rootOutputFolder}/enumeration`);
     }
-    if (!fs.existsSync("./docs/java_action")) {
-        fs.mkdirSync("./docs/java_action");
+    if (!fs.existsSync(`${rootOutputFolder}/java_action`)) {
+        fs.mkdirSync(`${rootOutputFolder}/java_action`);
     }
-    if (!fs.existsSync("./docs/page")) {
-        fs.mkdirSync("./docs/page");
+    if (!fs.existsSync(`${rootOutputFolder}/page`)) {
+        fs.mkdirSync(`${rootOutputFolder}/page`);
     }
 
     // initialise docsify
-    fs.writeFileSync(`./docs/index.html`, indexHtmlTemplate(pdProject));
-    fs.writeFileSync(`./docs/.nojekyll`, '');
+    fs.writeFileSync(`${rootOutputFolder}/index.html`, indexHtmlTemplate(pdProject));
+    fs.writeFileSync(`${rootOutputFolder}/.nojekyll`, '');
 
     // create main page
     let content = projectTemplate(pdProject);    
-    fs.writeFileSync(`./docs/${pdProject.name}.md`, content);
+    fs.writeFileSync(`${rootOutputFolder}/${pdProject.name}.md`, content);
 
     // generate pages for modules and related objects
     pdProject.modules.forEach((m)=>{
-        generateDocumentationForModule(m, projectConfig.modules);
+        generateDocumentationForModule(m, projectConfig.modules, rootOutputFolder);
 
         m.entities.forEach((e)=>{
-            generateDocumentationForEntity(m, e, projectConfig.modules);
+            generateDocumentationForEntity(m, e, projectConfig.modules, rootOutputFolder);
         });
 
         m.enumerations.forEach((e)=>{
-            generateDocumentationForEnumeration(m, e);
+            generateDocumentationForEnumeration(m, e, rootOutputFolder);
         });
 
         m.javaActions.forEach((j)=>{
-            generateDocumentationForJavaAction(m, j, projectConfig.modules);
+            generateDocumentationForJavaAction(m, j, projectConfig.modules, rootOutputFolder);
         });
 
         m.microflows.forEach((mf)=>{
-            generateDocumentationForMicroflow(m, mf, projectConfig.modules);
+            generateDocumentationForMicroflow(m, mf, projectConfig.modules, rootOutputFolder);
         });
 
         m.pages.forEach((p)=>{
-            generateDocumentationForPage(m, p);
+            generateDocumentationForPage(m, p, rootOutputFolder);
         });
     });
 }
 
-function generateDocumentationForModule(pdModule : ProjectData.Module, configuredModules : string[]){
+function generateDocumentationForModule(pdModule : ProjectData.Module, 
+    configuredModules : string[], rootOutputFolder : string){
     let content = moduleTemplate(pdModule,configuredModules);        
 
-    fs.writeFileSync(`docs/module/${pdModule.name}.md`, content);
+    fs.writeFileSync(`${rootOutputFolder}/module/${pdModule.name}.md`, content);
 }
 
-function generateDocumentationForEntity(pdModule : ProjectData.Module, pdEntity : ProjectData.Entity, configuredModules : string[]){
+function generateDocumentationForEntity(pdModule : ProjectData.Module, pdEntity : ProjectData.Entity, 
+    configuredModules : string[], rootOutputFolder : string){
     let content = entityTemplate(pdEntity,configuredModules);        
 
-    fs.writeFileSync(`docs/entity/${pdModule.name}_${pdEntity.name}.md`, content);
+    fs.writeFileSync(`${rootOutputFolder}/entity/${pdModule.name}_${pdEntity.name}.md`, content);
 }
 
-function generateDocumentationForEnumeration(pdModule : ProjectData.Module, pdEnumeration : ProjectData.Enumeration){
+function generateDocumentationForEnumeration(pdModule : ProjectData.Module, 
+    pdEnumeration : ProjectData.Enumeration, rootOutputFolder : string){
     let content = enumerationTemplate(pdEnumeration);        
 
-    fs.writeFileSync(`docs/enumeration/${pdModule.name}_${pdEnumeration.name}.md`, content);
+    fs.writeFileSync(`${rootOutputFolder}/enumeration/${pdModule.name}_${pdEnumeration.name}.md`, content);
 }
 
-function generateDocumentationForJavaAction(pdModule : ProjectData.Module, pdJavaAction : ProjectData.JavaAction, configuredModules : string[]){
+function generateDocumentationForJavaAction(pdModule : ProjectData.Module, pdJavaAction : ProjectData.JavaAction, 
+    configuredModules : string[], rootOutputFolder : string){
     let content = javaActionTemplate(pdJavaAction, configuredModules);        
 
-    fs.writeFileSync(`docs/java_action/${pdModule.name}_${pdJavaAction.name}.md`, content);
+    fs.writeFileSync(`${rootOutputFolder}/java_action/${pdModule.name}_${pdJavaAction.name}.md`, content);
 }
 
-function generateDocumentationForMicroflow(pdModule : ProjectData.Module, pdMicroflow : ProjectData.Microflow, configuredModules : string[]){
+function generateDocumentationForMicroflow(pdModule : ProjectData.Module, pdMicroflow : ProjectData.Microflow, 
+    configuredModules : string[], rootOutputFolder : string){
     let content = microflowTemplate(pdMicroflow, configuredModules);        
 
-    fs.writeFileSync(`docs/microflow/${pdModule.name}_${pdMicroflow.name}.md`, content);
+    fs.writeFileSync(`${rootOutputFolder}/microflow/${pdModule.name}_${pdMicroflow.name}.md`, content);
 }
 
-function generateDocumentationForPage(pdModule : ProjectData.Module, pdPage : ProjectData.Page){
+function generateDocumentationForPage(pdModule : ProjectData.Module, 
+    pdPage : ProjectData.Page, rootOutputFolder : string){
     let content = pageTemplate(pdPage);        
 
-    fs.writeFileSync(`docs/page/${pdModule.name}_${pdPage.name}.md`, content);
+    fs.writeFileSync(`${rootOutputFolder}/page/${pdModule.name}_${pdPage.name}.md`, content);
 }

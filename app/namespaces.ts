@@ -121,6 +121,7 @@ export namespace ProjectConfig{
         branch_name : string,
         revision_number : number,
         modules : string[],
-        saveProjectDataAsJson : boolean
+        saveProjectDataAsJson : boolean,
+        rootOutputFolder : string
     }
 }
