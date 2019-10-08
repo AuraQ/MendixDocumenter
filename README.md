@@ -2,7 +2,7 @@
 A command-line NodeJS tool to generate a Javadoc-like website for any Mendix project using the Mendix platform and model SDK. 
 
 ## To install:
-- Ensure you have the latest version of Node and npm installed
+- Ensure you have the latest version of node, npm and typescript installed
 - Run 'npm i docsify-cli -g' to install docsify-cli globally
 - Download the repository or clone using 'git clone https://github.com/AuraQ/MendixDocumenter'
 - In a terminal navigate to the root folder of the project
