@@ -1,16 +1,21 @@
 {
-	"username": "",
-	"api_key": "",
-	"project_name": "",
-	"project_description": "",
-	"project_id": "",
-	"language_code": "en_US",
-	"branch_name": "",
-	"revision_number": -1,
-	"modules": [
-		"",
-		""
-	],
-	"saveProjectDataAsJson" : true,
-    "rootOutputFolder" : "./docs"
+    "auth" : {
+        "username":"",
+        "apikey":""
+    },
+    "project":{
+        "id":"",
+        "name":"",
+        "description":"",
+        "branch": "",
+		"revision": -1
+    },
+    "app":{
+		"language_code": "en_US",
+        "modules": [
+			"MyFirstModule"
+		],
+		"saveProjectDataAsJson" : true,
+		"rootOutputFolder" : "./docs"
+    }
 }

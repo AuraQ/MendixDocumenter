@@ -6,7 +6,7 @@ async function main(){
     const config = mdconfig();
 
     const pdProject : ProjectData.Project = await config.getProjectData(config.projectConfig);
-    if(config.projectConfig.saveProjectDataAsJson){
+    if(config.projectConfig.app.saveProjectDataAsJson){
         fs.writeFileSync(`./projectData.json`, JSON.stringify(pdProject));
     }
     config.generateDocumentation(config.projectConfig, pdProject);

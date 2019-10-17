@@ -112,14 +112,26 @@ export namespace ProjectData{
 
 export namespace ProjectConfig{
     export interface Config {
+        auth : Auth,
+        project : Project,
+        app : App
+    }
+
+    export interface Auth{
         username : string,
-        api_key : string,
-        project_name : string,
-        project_description : string,
-        project_id : string,
+        apikey : string
+    }
+
+    export interface Project{
+        id : string,
+        name : string,
+        description : string,
+        branch : string,
+        revision : number
+    }
+
+    export interface App{
         language_code : string,
-        branch_name : string,
-        revision_number : number,
         modules : string[],
         saveProjectDataAsJson : boolean,
         rootOutputFolder : string

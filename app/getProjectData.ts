@@ -5,16 +5,16 @@ import {getModule, getTypeFromAttributeType, getTypeFromDataType, getTypeFromAct
 import {ProjectData, ProjectConfig} from './namespaces'
 
 export default async (projectConfig : ProjectConfig.Config) : Promise<ProjectData.Project> => {
-    const client = new MendixSdkClient(projectConfig.username, projectConfig.api_key);
-    const project = new Project(client, projectConfig.project_id, projectConfig.project_name);
+    const client = new MendixSdkClient(projectConfig.auth.username, projectConfig.auth.apikey);
+    const project = new Project(client, projectConfig.project.id, projectConfig.project.name);
 
     let pdProject : ProjectData.Project | null = null;
     const working_copy = await client.platform().createOnlineWorkingCopy(project, new Revision(
-        projectConfig.revision_number, new Branch(project, (projectConfig.branch_name === "") ? null : projectConfig.branch_name)));
+        projectConfig.project.revision, new Branch(project, (projectConfig.project.branch === "") ? null : projectConfig.project.branch)));
 
     // LOAD DATA
     let loaded_modules = working_copy.model().root.modules.filter(function(md) {
-        return projectConfig.modules.includes(md.name);
+        return projectConfig.app.modules.includes(md.name);
     });
 
     let pdModules : ProjectData.Module[] = [];
@@ -23,16 +23,16 @@ export default async (projectConfig : ProjectConfig.Config) : Promise<ProjectDat
         const module = loaded_modules[i];
         const domain_model = await module.domainModel.load();
         
-        if (!projectConfig.modules.includes(domain_model.containerAsModule.name)) {
+        if (!projectConfig.app.modules.includes(domain_model.containerAsModule.name)) {
             continue;
         }
 
         const entities : ProjectData.Entity[] = await getEntitiesForModule(domain_model, module);
         const associations : ProjectData.Association[] = await getAssociationsForDomainModel(domain_model); 
-        const enumerations : ProjectData.Enumeration[] = await getEnumerationsForModule(working_copy, domain_model, module,projectConfig.language_code);
+        const enumerations : ProjectData.Enumeration[] = await getEnumerationsForModule(working_copy, domain_model, module,projectConfig.app.language_code);
         const microflows : ProjectData.Microflow[] = await getMicroflowsForModule(working_copy, domain_model, module);
         const javaActions : ProjectData.JavaAction[] = await getJavaActionsForModule(working_copy, domain_model, module);
-        const pages : ProjectData.Page[] = await getPagesForModule(working_copy, domain_model, module, projectConfig.language_code);
+        const pages : ProjectData.Page[] = await getPagesForModule(working_copy, domain_model, module, projectConfig.app.language_code);
 
         pdModules.push({
             name : module.name,
@@ -47,8 +47,8 @@ export default async (projectConfig : ProjectConfig.Config) : Promise<ProjectDat
     };
 
     pdProject = {
-        name : projectConfig.project_name,
-        description : projectConfig.project_description,
+        name : projectConfig.project.name,
+        description : projectConfig.project.description,
         modules : pdModules
     }
 

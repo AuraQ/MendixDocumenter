@@ -6,7 +6,7 @@ import {indexHtmlTemplate, projectTemplate, moduleTemplate,
 
 export default (projectConfig : ProjectConfig.Config, pdProject : ProjectData.Project) => {
     // set up output folders
-    const {rootOutputFolder} = projectConfig;
+    const {rootOutputFolder, modules} = projectConfig.app;
     if (!fs.existsSync(rootOutputFolder)) {
         fs.mkdirSync(rootOutputFolder);
     }
@@ -39,10 +39,10 @@ export default (projectConfig : ProjectConfig.Config, pdProject : ProjectData.Pr
 
     // generate pages for modules and related objects
     pdProject.modules.forEach((m)=>{
-        generateDocumentationForModule(m, projectConfig.modules, rootOutputFolder);
+        generateDocumentationForModule(m, modules, rootOutputFolder);
 
         m.entities.forEach((e)=>{
-            generateDocumentationForEntity(m, e, projectConfig.modules, rootOutputFolder);
+            generateDocumentationForEntity(m, e, modules, rootOutputFolder);
         });
 
         m.enumerations.forEach((e)=>{
@@ -50,11 +50,11 @@ export default (projectConfig : ProjectConfig.Config, pdProject : ProjectData.Pr
         });
 
         m.javaActions.forEach((j)=>{
-            generateDocumentationForJavaAction(m, j, projectConfig.modules, rootOutputFolder);
+            generateDocumentationForJavaAction(m, j, modules, rootOutputFolder);
         });
 
         m.microflows.forEach((mf)=>{
-            generateDocumentationForMicroflow(m, mf, projectConfig.modules, rootOutputFolder);
+            generateDocumentationForMicroflow(m, mf, modules, rootOutputFolder);
         });
 
         m.pages.forEach((p)=>{
